@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script
+            src="https://kit.fontawesome.com/00a7ab4cb7.js"
+            crossorigin="anonymous"></script>
+        <title>Weather App</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <script
+            src="https://cdn.jsdelivr.net/npm/echarts@5.3.2/dist/echarts.js"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/timeago.js@4.0.2/dist/timeago.min.js"></script>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="left">
+                <div class="container">
+                    <div class="header">
+                        <div class="date" id="date"></div>
+                        <div class="searchBar">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input class="searchInput" id="searchInput"
+                                type="text" />
+                            <button class="searchButton"
+                                onclick="getWeatherData()">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="todayOverview">
+                        <div class="sectionTitle">Today Overview</div>
+                        <div class="row">
+                            <div class="overviewProp">
+                                <div class="propIconContainer">
+                                    <i class="propIcon fa-solid fa-wind"></i>
+                                </div>
+                                <div class="propValueContainer">
+                                    <div class="propTitle">Wind</div>
+                                    <div class="propMain">
+                                        <span class="primaryData">
+                                            <span class="propValue" id="wind"></span>
+                                            <span class="propMetric">mph</span>
+                                        </span>
+                                        <span class="secondaryData"
+                                            id="windDir"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="overviewProp">
+                                <div class="propIconContainer">
+                                    <i class="propIcon fa-solid
+                                        fa-temperature-half"></i>
+                                </div>
+                                <div class="propValueContainer">
+                                    <div class="propTitle">Lowest / Highest</div>
+                                    <div class="propMain">
+                                        <span class="primaryData">
+                                            <span class="propValue"
+                                                id="lowestToday"></span>
+                                            <span class="propMetric">˚F</span>
+                                            <span> / </span>
+                                            <span class="propValue"
+                                                id="highestToday"></span>
+                                            <span class="propMetric">˚F</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="overviewProp">
+                                <div class="propIconContainer">
+                                    <i class="propIcon fa-solid fa-water"></i>
+                                </div>
+                                <div class="propValueContainer">
+                                    <div class="propTitle">Pressure</div>
+                                    <div class="propMain">
+                                        <span class="primaryData">
+                                            <span class="propValue"
+                                                id="pressure"></span>
+                                            <span class="propMetric">hpa</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overviewProp">
+                                <div class="propIconContainer">
+                                    <i class="propIcon fa-solid fa-droplet"></i>
+                                </div>
+                                <div class="propValueContainer">
+                                    <div class="propTitle">Humidity</div>
+                                    <div class="propMain">
+                                        <span class="primaryData">
+                                            <span class="propValue"
+                                                id="humidity"></span>
+                                            <span class="propMetric">%</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tempForecast">
+                        <div class="sectionTitle">Temperature Forecast</div>
+                        <div id="chart" style="width: 100%; height: 400px"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="rightContainer">
+                    <div class="top">
+                        <div class="location" id="location"></div>
+                        <div class="time" id="time"></div>
+                    </div>
+                    <div class="currentWeather">
+                        <div class="weatherIconContainer">
+                            <img src="" alt="weather icon" id="weatherIcon" />
+                        </div>
+                        <div class="currentTemperatureValueContainer">
+                            <span class="currentTemperatureValue"
+                                id="currentTemp"></span>
+                            <span class="currentTemperatureMetric">˚F</span>
+                        </div>
+                        <div class="temperatureDescription"
+                            id="weatherDescription"></div>
+                    </div>
+                    <div class="sectionTitle">Sunrise & Sunset</div>
+                    <div class="sunStageContainer">
+                        <div class="sunIcon"><i class="fa-solid fa-sun"></i></div>
+                        <div class="col">
+                            <div class="sunStageTitle">Sunrise</div>
+                            <div class="sunTime" id="sunrise"></div>
+                        </div>
+                        <div class="sunTimeRelative" id="sunriseRelative"></div>
+                    </div>
+                    <div class="sunStageContainer">
+                        <div class="sunIcon"><i class="fa-solid fa-moon"></i></div>
+                        <div class="col">
+                            <div class="sunStageTitle">Sunset</div>
+                            <div class="sunTime" id="sunset"></div>
+                        </div>
+                        <div class="sunTimeRelative" id="sunsetRelative"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+      /*
+ 🔥 APP: Weather App
+
+ These are the promises you'll need to create
+ =============================================
+    1. currentWeather - Gets the current weather
+    2. forecast - Gets 5 day forecast
+
+These are all the functions you'll need to build
+================================================
+    1. getWeatherData() - Runs both promises then updates the DOM by running...
+    2. updateDom() - Updates the DOM with the data from the promises and runs the...
+    3. renderChart() - Renders the chart with the data from the promises
+
+    4. getDirection() - Returns a cardinal direction based on the degree passed in
+        - this will be a helper function only
+ */
+
+      // Get DOM Elements
+      // Hint: All required elements have an ID attribute in the HTML file (a total of 17 elements)
+      const currentTemperature = document.getElementById("currentTemp");
+      const weatherIcon = document.getElementById("weatherIcon");
+      const weatherDescription = document.getElementById("weatherDescription");
+      const windSpeed = document.getElementById("wind");
+      const windDirection = document.getElementById("windDir");
+      const lowestToday = document.getElementById("lowestToday");
+      const highestToday = document.getElementById("highestToday");
+      const pressure = document.getElementById("pressure");
+      const humidity = document.getElementById("humidity");
+      const sunrise = document.getElementById("sunrise");
+      const sunset = document.getElementById("sunset");
+      const sunriseRelative = document.getElementById("sunriseRelative");
+      const sunsetRelative = document.getElementById("sunsetRelative");
+      const userLocation = document.getElementById("location");
+      const time = document.getElementById("time");
+      const date = document.getElementById("date");
+      const searchInput = document.getElementById("searchInput");
+
+      // Create an array of month names
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+
+      const getWeatherData = async () => {
+        // Use the try-catch block to handle errors
+        try {
+            const API_KEY = "your_api_key_here";
+const url = "https://maps.googleapis.com/maps/api/geocode/json";
+
+// Use the browser's location services to obtain the user's current location
+navigator.geolocation.getCurrentPosition(position => {
+  const latitude = position.coords.latitude;
+  const longitude = position.coords.longitude;
+
+  // Make a request to the geocoding service to obtain the city name
+  fetch(`${url}?latlng=${latitude},${longitude}&key=${API_KEY}`)
+    .then(response => response.json())
+    .then(data => {
+      const city = data.results[0].address_components[2].long_name;
+
+      // Use the obtained city name as the default city in the weather app
+      const userInput = "user_input_here";
+      const defaultCity = userInput || city;
+
+      // Use the default city in the weather app
+      // ...
+    })
+    .catch(error => console.error(error));
+}, error => console.error(error));
+
+          // Create a const that stores the user input from the searchbar or defaults back to 'Ksk' if left blank
+          const city = searchInput.value || "Kala Shah Kaku";
+
+          // Create 2 promises that call the APIs and pass in the city name
+          // If the user haven't typed anything, use Los Angeles as default
+          const currentWeather = new Promise(async (resolve, reject) => {
+            try {
+              const weatherApiData = await fetch(
+                `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=8109965e7254a469d08a746e8b210e1e&units=imperial`
+              );
+
+              resolve(await weatherApiData.json());
+            } catch (error) {
+              reject();
+            }
+          });
+
+          const forecast = new Promise(async (resolve, reject) => {
+            try {
+              const forecastApiData = await fetch(
+                `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=8109965e7254a469d08a746e8b210e1e&units=imperial&cnt=10`
+              );
+
+              resolve(await forecastApiData.json());
+            } catch (error) {
+              reject();
+            }
+          });
+
+          // Using the Promise.all method, wait for both promises to resolve, and save the returned data in a variable
+          const data = await Promise.all([currentWeather, forecast]);
+
+          // Now pass that data into the updateDom() function
+          updateDom(data);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      // Create a function that returns a cardinal direction based on the degree passed in
+      // Hint: Draw a Circle and Visualize each Direction First. It will help... A ton!
+      const getDirection = (deg) => {
+        switch (true) {
+          case deg < 22.5:
+            return "N";
+          case deg < 67.5:
+            return "NE";
+          case deg < 112.5:
+            return "E";
+          case deg < 157.5:
+            return "SE";
+          case deg < 202.5:
+            return "S";
+          case deg < 247.5:
+            return "SW";
+          case deg < 292.5:
+            return "W";
+          case deg < 337.5:
+            return "NW";
+        }
+      };
+
+      /**
+       * Update each DOM element with the API data
+       */
+      const updateDom = (data) => {
+        console.log("🔥 updating", data);
+        // Current temperature
+        currentTemperature.innerText = data[0].main.temp.toFixed(1);
+
+        // Weather Icon
+        // Use template literals to insert the in the below link, then set it as image source:
+        // https://openweathermap.org/img/wn/API_RESPONSE_DATA@2x.png
+        weatherIcon.src = `https://openweathermap.org/img/wn/${data[0].weather[0].icon}@2x.png`;
+
+        // Description of the Current Weather
+        weatherDescription.innerText = data[0].weather[0].main;
+
+        // Wind Speed
+        windSpeed.innerText = data[0].wind.speed.toFixed(1);
+
+        // Wind Direction (Use the getDirection function)
+        windDirection.innerText = getDirection(data[0].wind.deg);
+
+        // Lowest Temperature of the Day
+        lowestToday.innerText = Math.round(data[0].main.temp_min);
+
+        // Highest Temperature of the Day
+        highestToday.innerText = Math.round(data[0].main.temp_max);
+
+        // Pressure
+        pressure.innerText = data[0].main.pressure;
+
+        // Humidity
+        humidity.innerText = data[0].main.humidity;
+
+        // Save both Sunrise and Sunset time in a variable as Milliseconds
+        // Hint: the data from the API is in seconds
+        const sunriseTs = new Date(data[0].sys.sunrise * 1000);
+        const sunsetTs = new Date(data[0].sys.sunset * 1000);
+
+        // Use the Sunrise Time in Milliseconds to get Sunrise Time
+        // use the .toLocaleString() method to get the time in a readable format
+        sunrise.innerText = sunriseTs.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+        });
+
+        // Do the same for Sunset
+        sunset.innerText = sunsetTs.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+        });
+
+        // Using timeago.js, create relative timestamps for both sunrise and sunset
+        sunriseRelative.innerText = timeago.format(sunriseTs);
+        sunsetRelative.innerText = timeago.format(sunsetTs);
+
+        // Get the location of the user from the API (When you type, it's probably not formatted)
+        userLocation.innerText = data[0].name;
+
+        // Get and format Current Time
+        time.innerText = new Date(Date.now()).toLocaleString("en-US", {
+          hour: "numeric",
+          minute: "numeric",
+        });
+
+        // Get and format Current Date
+        date.innerText = new Date(Date.now()).toLocaleString("en-US", {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+
+        // Call the renderChart function and pass in the list array of the 2nd object in the data array
+        renderChart(data[1].list);
+      };
+
+      // Create a function that renders the chart
+      const renderChart = (data) => {
+        // Store the DOM element that will hold the chart
+        const myChart = echarts.init(document.getElementById("chart"));
+
+        const option = {
+          legend: {
+            data: ["temperature"],
+          },
+          tooltip: {},
+          xAxis: {
+            data: data.map((item) => item.dt_txt),
+          },
+          yAxis: {},
+          series: [
+            {
+              type: "line",
+              smooth: true,
+              areaStyle: {
+                opacity: 0.5,
+              },
+              data: data.map((item) => item.main.temp),
+            },
+          ],
+        };
+
+        // Using the given function from the documentation, generate the chart using the options above
+        myChart.setOption(option);
+      };
+
+      // Call the getWeatherData function
+      getWeatherData();
+    </script>
+        <style>
+      * {
+        font-family: Avenir Next;
+        padding: 0;
+        margin: 0;
+      }
+
+      .wrapper {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .left {
+        flex: 1;
+        color: #091f39;
+        font-weight: 600;
+        padding: 1.6rem 2.4rem;
+        display: flex;
+        justify-content: center;
+        height: 100vh;
+        overflow: scroll;
+      }
+
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .left::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .left {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+
+      .container {
+        flex: 1;
+        max-width: 44rem;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+      }
+
+      .date {
+        font-size: 1.6rem;
+      }
+
+      .searchBar {
+        flex: 1;
+        background-color: #eef3f3;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        padding: 0.8rem 1.2rem;
+        margin-left: 4.6rem;
+      }
+
+      .searchInput {
+        background: none;
+        outline: none;
+        border: none;
+        flex: 1;
+        margin-left: 0.6rem;
+      }
+
+      .searchButton {
+        border: none;
+        background-color: #a8b7e2;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.5rem;
+        margin: -0.4rem 0;
+        cursor: pointer;
+      }
+
+      .searchButton:hover {
+        background-color: #8e9dd3;
+      }
+
+      .sectionTitle {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 3rem;
+        margin-bottom: 1.6rem;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      .overviewProp {
+        height: 6rem;
+        min-width: 16rem;
+        width: 100%;
+        margin: 0.4rem 1.4rem;
+        background-color: #eef3f3;
+        display: flex;
+        align-items: center;
+        border-radius: 0.6rem;
+        padding: 0 1rem;
+      }
+
+      .propIconContainer {
+        padding-right: 1rem;
+      }
+
+      .propIcon {
+        color: #4771da;
+      }
+
+      .propValueContainer {
+        width: 100%;
+      }
+
+      .propTitle {
+        color: #98989b;
+        font-weight: 400;
+        font-size: 1.1rem;
+      }
+
+      .propMain {
+        display: flex;
+        align-items: flex-end;
+        width: 100%;
+      }
+
+      .primaryData {
+        flex: 3;
+      }
+
+      .propValue {
+        font-weight: 500;
+        font-size: 1.4rem;
+      }
+
+      .secondaryData {
+        flex: 1;
+        font-weight: 400;
+        color: #98989b;
+      }
+
+      .right {
+        width: 28rem;
+        background-color: #112b50;
+        background-size: 200% 400%;
+        color: #fafcfe;
+      }
+
+      .rightContainer {
+        padding: 1.6rem 1.4rem;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .location {
+        font-size: 1.8rem;
+        font-weight: 500;
+      }
+
+      .time {
+        font-size: 1.4rem;
+        font-weight: 400;
+      }
+
+      .currentWeather {
+        display: flex;
+        align-items: center;
+        margin-top: 2.6rem;
+      }
+
+      .weatherIconContainer {
+        height: 5.4rem;
+        width: 5.4rem;
+        margin-right: 1rem;
+      }
+
+      .weatherIconContainer > img {
+        height: 100%;
+        width: 100%;
+      }
+
+      .currentTemperatureValueContainer {
+        flex: 1;
+      }
+
+      .currentTemperature {
+        margin: 0.4rem 1.2rem;
+      }
+
+      .currentTemperature {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .currentTemperatureValue {
+        font-size: 3rem;
+        font-weight: 400;
+      }
+
+      .currentTemperatureMetric {
+        font-size: 2rem;
+        font-weight: 400;
+      }
+
+      .temperatureDescription {
+        font-size: 1.4rem;
+        font-weight: 400;
+      }
+
+      .horizontalLine {
+        width: 100%;
+        height: 1px;
+        background-color: #445977;
+        margin: 1.6rem 0;
+      }
+
+      .sunStageContainer {
+        display: flex;
+        align-items: center;
+        margin-top: 1.6rem;
+        background-color: #294269;
+        padding: 1rem 1.2rem;
+        border-radius: 0.6rem;
+        border: 1px #6180b9 solid;
+      }
+
+      .sunIcon {
+        margin-right: 1.2rem;
+        font-size: 1.2rem;
+      }
+
+      .col {
+        flex: 1;
+      }
+
+      .sunStageTitle {
+        color: #98989b;
+        font-weight: 400;
+        font-size: 0.8rem;
+      }
+
+      .sunTime {
+        font-weight: 500;
+      }
+
+      .sunTimeRelative {
+        font-size: 0.8rem;
+        font-weight: 400;
+      }
+    </style>
+    </body>
+</html>
